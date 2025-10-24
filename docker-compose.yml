@@ -1,0 +1,82 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jungle_tasks
+      POSTGRES_USER: jungle
+      POSTGRES_PASSWORD: jungle_pass
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: jungle
+      RABBITMQ_DEFAULT_PASS: jungle_pass
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    env_file: apps/api-gateway/.env.example
+    depends_on:
+      - auth-service
+      - tasks-service
+      - notifications-service
+    ports:
+      - '3000:3000'
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    env_file: apps/auth-service/.env.example
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3001:3001'
+
+  tasks-service:
+    build:
+      context: .
+      dockerfile: apps/tasks-service/Dockerfile
+    env_file: apps/tasks-service/.env.example
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3002:3002'
+
+  notifications-service:
+    build:
+      context: .
+      dockerfile: apps/notifications-service/Dockerfile
+    env_file: apps/notifications-service/.env.example
+    depends_on:
+      - postgres
+      - rabbitmq
+    ports:
+      - '3003:3003'
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    env_file: apps/web/.env.example
+    depends_on:
+      - api-gateway
+    ports:
+      - '5173:5173'
+
+volumes:
+  pgdata:

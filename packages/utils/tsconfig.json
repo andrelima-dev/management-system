@@ -1,0 +1,23 @@
+// tsconfig.json - configuração para o pacote packages/utils
+// Ajuste "extends" se seu mono-repo usar outro caminho/base.
+{
+    "extends": "../../tsconfig.base.json",
+    "compilerOptions": {
+        "composite": true,
+        "declaration": true,
+        "declarationMap": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "target": "ES2020",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "isolatedModules": false
+    },
+    "include": ["src"],
+    "exclude": ["dist", "node_modules", "**/*.spec.ts", "**/*.test.ts"]
+}

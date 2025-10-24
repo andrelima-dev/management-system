@@ -1,0 +1,9 @@
+{
+  "name": "@jungle/types",
+  "version": "0.1.0",
+  "private": false,
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

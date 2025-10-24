@@ -1,0 +1,6 @@
+{
+  "name": "@jungle/utils",
+  "version": "0.1.0",
+  "private": false,
+  "main": "src/index.ts"
+}

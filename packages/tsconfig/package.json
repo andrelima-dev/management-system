@@ -1,0 +1,6 @@
+{
+  "name": "@jungle/tsconfig",
+  "version": "0.1.0",
+  "private": false,
+  "main": "tsconfig.json"
+}

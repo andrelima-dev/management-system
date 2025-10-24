@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+  "moduleResolution": "Node",
+  "experimentalDecorators": true,
+  "emitDecoratorMetadata": true,
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@jungle/types/*": ["packages/types/src/*"],
+      "@jungle/utils/*": ["packages/utils/src/*"],
+      "@ui-kit/*": ["packages/ui-kit/src/*"]
+    }
+  }
+}
