@@ -1,10 +1,11 @@
 {
-  "extends": "@jungle/tsconfig/tsconfig.json",
+  "extends": "../../packages/tsconfig/tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "dist",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false
   },
   "include": ["src/**/*.ts", "migrations/**/*.ts"],
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]

@@ -11,6 +11,7 @@ import { HealthModule } from './modules/health/health.module';
 import { SecurityModule } from './infra/security/security.module';
 import { JwtAuthGuard } from './infra/security/jwt-auth.guard';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { TasksModule } from './modules/tasks/tasks.module';
     SecurityModule,
     AuthModule,
     HealthModule,
-    TasksModule
+    TasksModule,
+    NotificationsModule
   ],
   providers: [
     {

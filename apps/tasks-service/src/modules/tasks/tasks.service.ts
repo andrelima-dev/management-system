@@ -36,9 +36,7 @@ export class TasksService {
 
     const qb = this.tasksRepository
       .createQueryBuilder('task')
-      .leftJoinAndSelect('task.assignees', 'assignee')
-      .loadRelationCountAndMap('task.commentsCount', 'task.comments')
-      .orderBy('task.created_at', 'DESC');
+      .orderBy('task.createdAt', 'DESC');
 
     if (query.status) {
       qb.andWhere('task.status = :status', { status: query.status });
@@ -62,20 +60,7 @@ export class TasksService {
 
   async getById(id: string): Promise<TaskEntity> {
     const task = await this.tasksRepository.findOne({
-      where: { id },
-      relations: {
-        assignees: true,
-        comments: true,
-        history: true
-      },
-      order: {
-        history: {
-          createdAt: 'DESC'
-        },
-        comments: {
-          createdAt: 'DESC'
-        }
-      }
+      where: { id }
     });
 
     if (!task) {

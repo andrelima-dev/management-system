@@ -7,19 +7,19 @@ import { AccessTokenPayload } from './access-token-payload.interface';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
-    const publicKey = configService.get<string>('app.jwtAccessPublicKey', {
+    const secret = configService.get<string>('app.jwtAccessPublicKey', {
       infer: true
     });
 
-    if (!publicKey) {
-      throw new Error('Missing JWT public key configuration');
+    if (!secret) {
+      throw new Error('Missing JWT secret configuration');
     }
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: publicKey.replace(/\\n/g, '\n'),
-      algorithms: ['RS256']
+      secretOrKey: secret,
+      algorithms: ['HS256']
     });
   }
 
