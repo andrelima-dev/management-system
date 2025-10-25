@@ -365,16 +365,6 @@ docker-compose up      # Docker Compose
 
 ---
 
-## 📖 Referências
-
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Documentação técnica
-- [GETTING_STARTED.md](./GETTING_STARTED.md) - Guia de setup
-- [CODE_EXAMPLES.md](./CODE_EXAMPLES.md) - Exemplos de código
-- [SUMMARY.md](./SUMMARY.md) - Resumo executivo
-
----
-
-<div align="center">
 
 Desenvolvido com ❤️ para aprendizado e crescimento profissional.
 
