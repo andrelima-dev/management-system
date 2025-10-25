@@ -3,6 +3,7 @@ import App from "@/App"
 import { AuthPage } from "@/routes/auth"
 import { TasksPage } from "@/routes/tasks"
 import { TaskDetailPage } from "@/routes/task-detail"
+import { TeamPage } from "@/routes/team"
 
 const rootRoute = new RootRoute({
   component: App,
@@ -26,7 +27,13 @@ const taskDetailRoute = new Route({
   component: TaskDetailPage,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, tasksRoute, taskDetailRoute])
+const teamRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: "/team",
+  component: TeamPage,
+})
+
+const routeTree = rootRoute.addChildren([indexRoute, tasksRoute, taskDetailRoute, teamRoute])
 
 export const router = new Router({ routeTree })
 

@@ -30,13 +30,18 @@ export class TasksService {
     private readonly messagingService: MessagingService
   ) {}
 
-  async list(query: ListTasksDto): Promise<PaginationResult<TaskEntity>> {
+  async list(query: ListTasksDto, userId?: string): Promise<PaginationResult<TaskEntity>> {
     const page = query.page && query.page > 0 ? query.page : 1;
     const pageSize = query.pageSize && query.pageSize > 0 ? query.pageSize : 10;
 
     const qb = this.tasksRepository
       .createQueryBuilder('task')
       .orderBy('task.createdAt', 'DESC');
+
+    // Filter by user if provided
+    if (userId) {
+      qb.andWhere('task.createdById = :userId', { userId });
+    }
 
     if (query.status) {
       qb.andWhere('task.status = :status', { status: query.status });

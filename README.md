@@ -1,102 +1,215 @@
-# 🌴 Jungle Tasks - Sistema de Gerenciamento de Tarefas em Tempo Real
+# 📋 Tasks - Sistema de Gerenciamento de Tarefas
 
 <div align="center">
 
 ![Status](https://img.shields.io/badge/Status-✅%20Operacional-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
-![Node](https://img.shields.io/badge/Node-22+-brightgreen?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?style=flat-square)
+![NestJS](https://img.shields.io/badge/NestJS-10+-red?style=flat-square)
+![React](https://img.shields.io/badge/React-18+-61dafb?style=flat-square)
 
-**Uma aplicação full-stack moderna com microserviços, autenticação JWT, comunicação assíncrona e notificações em tempo real.**
+**Uma aplicação full-stack profissional para gerenciamento de tarefas com arquitetura de microserviços, autenticação segura e interface moderna.**
 
-[📖 Documentação](#-documentação) • [🚀 Quick Start](#-quick-start) • [📝 Exemplos](#-exemplos) • [🏗️ Arquitetura](#-arquitetura)
+[ Quick Start](#-quick-start) • [� Documentação](#-documentação) • [🏗️ Arquitetura](#-arquitetura) • [👤 Demo](#-demo)
 
 </div>
 
 ---
 
-## 🎯 Sobre o Projeto
+## ✨ Funcionalidades
 
-**Jungle Tasks** é um desafio de desenvolvimento completo que demonstra competência full-stack. O projeto implementa um sistema profissional de gerenciamento de tarefas com:
+- 🔐 **Autenticação Segura** - JWT com tokens de acesso e refresh
+- ✅ **Gerenciamento de Tarefas** - CRUD completo com status e prioridades
+- 👥 **Gestão de Equipes** - Convide e gerencie membros da equipe
+- 🎨 **Interface Moderna** - Design responsivo com tema claro e escuro
+- 🏗️ **Arquitetura de Microserviços** - Serviços desacoplados e escaláveis
+- 📦 **Monorepo** - Código compartilhado entre aplicações
+- 🐳 **Docker Ready** - Deploy com Docker Compose em um comando
 
-- ✅ **Autenticação Segura**: JWT com access/refresh tokens
-- ✅ **CRUD de Tarefas**: Completo com filtros e paginação
-- ✅ **Comentários e Histórico**: Rastreamento de alterações
-- ✅ **Notificações Real-time**: WebSocket integrado
-- ✅ **Microserviços**: Auth, Tasks, Notifications, Gateway
-- ✅ **Message Broker**: RabbitMQ para comunicação assíncrona
-- ✅ **Docker Compose**: Infraestrutura containerizada
-- ✅ **Monorepo**: Turborepo com código compartilhado
-- ✅ **React Frontend**: Modern UI com TanStack Router
+---
+
+## 👤 Demo
+
+Use as credenciais abaixo para testar a aplicação:
+
+```
+📧 Email: andre@teste.com
+🔑 Senha: 12345678
+```
+
+**URL**: http://localhost:5174/tasks
 
 ---
 
 ## 🏗️ Arquitetura
 
-### Componentes Principais
+### Microserviços
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                  FRONTEND (React)                   │
-│              http://localhost:5173                 │
-└────────────────────────┬────────────────────────────┘
-                         │
-          ┌──────────────┴──────────────┐
-          │ HTTP + WebSocket            │
-          ▼                             ▼
-    ┌─────────────────┐        ┌──────────────────┐
-    │  API Gateway    │────►   │  WebSocket       │
-    │  Port 3000      │        │  Notifications   │
-    └────────┬────────┘        └──────────────────┘
-             │
-     ┌───────┼───────┐
-     │       │       │
-     ▼       ▼       ▼
- ┌────────┐┌────────┐┌──────────┐
- │ Auth   ││ Tasks  ││Notif     │
- │Service ││Service ││Service   │
- │3001    ││3002    ││3003      │
- └────────┘└────────┘└──────────┘
-     │       │       │
-     └───────┼───────┘
-             │
-    ┌────────┴────────┐
-    │                 │
-    ▼                 ▼
-┌──────────────┐  ┌──────────────┐
-│ PostgreSQL   │  │ RabbitMQ     │
-│ Port 5432    │  │ Port 5672    │
-└──────────────┘  └──────────────┘
+                    ┌─────────────────┐
+                    │   Web (React)   │
+                    │ Port 5174       │
+                    └────────┬────────┘
+                             │
+                    ┌────────▼────────┐
+                    │  API Gateway    │
+                    │  Port 3000      │
+                    └─┬──────────┬────┘
+                      │          │
+        ┌─────────────┼──┬───────┼──┬──────────┐
+        │             │  │       │  │          │
+    ┌───▼────┐  ┌────▼──▼─┐ ┌───▼──▼──────┐  │
+    │  Auth   │  │ Tasks   │ │Notif.       │  │
+    │Service  │  │Service  │ │Service      │  │
+    │:3001    │  │:3002    │ │:3003        │  │
+    └────┬────┘  └────┬────┘ └────┬────────┘  │
+         │            │            │           │
+         └────────────┼────────────┴───────────┘
+                      │
+           ┌──────────┴──────────┐
+           │                     │
+        ┌──▼────────┐      ┌────▼──────┐
+        │PostgreSQL │      │ RabbitMQ  │
+        │:5432      │      │ :5672     │
+        └───────────┘      └───────────┘
 ```
 
 ### Stack Tecnológico
 
-| Camada | Tecnologias |
-|--------|-------------|
-| **Frontend** | React 18+, TanStack Router, Tailwind CSS, Zustand, TanStack Query |
-| **Backend** | NestJS, TypeORM, PostgreSQL, RabbitMQ |
-| **Autenticação** | JWT (access + refresh tokens), bcrypt |
-| **Real-time** | Socket.IO, WebSocket |
+| Componente | Tecnologia |
+|-----------|-----------|
+| **Frontend** | React 18, TypeScript, Tailwind CSS, Zustand |
+| **Backend** | NestJS, TypeORM, PostgreSQL |
+| **Autenticação** | JWT, Argon2 |
+| **Mensageria** | RabbitMQ |
 | **Infraestrutura** | Docker, Docker Compose |
-| **Monorepo** | Turborepo, pnpm |
-| **Qualidade** | TypeScript, ESLint, Prettier |
-
----
-
-## 📚 Documentação
-
-Este projeto inclui documentação completa:
-
-| Documento | Conteúdo |
-|-----------|----------|
-| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | Documentação técnica detalhada, modelagem de domínio, endpoints, plano de implementação |
-| **[GETTING_STARTED.md](./GETTING_STARTED.md)** | Guia prático de setup local, execução com Docker, troubleshooting |
-| **[CODE_EXAMPLES.md](./CODE_EXAMPLES.md)** | Exemplos concretos de código: entidades, DTOs, serviços, componentes React |
-| **[SUMMARY.md](./SUMMARY.md)** | Resumo executivo, estatísticas, fluxos principais, checklist |
+| **Build** | Turborepo, pnpm |
 
 ---
 
 ## 🚀 Quick Start
+
+### Pré-requisitos
+
+- Node.js v22+
+- Docker & Docker Compose
+- pnpm (ou npm)
+
+### Instalação e Execução
+
+```bash
+# 1. Clonar repositório
+git clone https://github.com/seu-usuario/management-system.git
+cd management-system
+
+# 2. Instalar dependências
+pnpm install
+
+# 3. Iniciar serviços com Docker Compose
+docker-compose up -d
+
+# 4. Executar migrações do banco de dados
+pnpm run db:migrate
+
+# 5. Iniciar desenvolvimento (Frontend)
+cd apps/web
+pnpm run dev
+```
+
+A aplicação estará disponível em: **http://localhost:5174**
+
+### Parar os serviços
+
+```bash
+docker-compose down
+```
+
+---
+
+## � Estrutura do Projeto
+
+```
+management-system/
+├── apps/
+│   ├── web/                 # Frontend React
+│   ├── api-gateway/         # API Gateway NestJS
+│   ├── auth-service/        # Serviço de Autenticação
+│   ├── tasks-service/       # Serviço de Tarefas
+│   └── notifications-service/ # Serviço de Notificações
+├── packages/
+│   ├── types/               # Tipos TypeScript compartilhados
+│   ├── utils/               # Utilitários compartilhados
+│   ├── ui-kit/              # Componentes de UI reutilizáveis
+│   └── eslint-config/       # Configuração ESLint
+├── docker-compose.yml       # Configuração de containers
+└── package.json             # Workspace root
+```
+
+---
+
+## 📖 Documentação
+
+Para documentação detalhada, consulte:
+
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Design técnico, APIs, fluxos
+- **[GETTING_STARTED.md](./GETTING_STARTED.md)** - Guia de setup local
+- **[CODE_EXAMPLES.md](./CODE_EXAMPLES.md)** - Exemplos de código
+
+---
+
+## 🔌 APIs Principais
+
+### Autenticação
+- `POST /auth/register` - Registrar novo usuário
+- `POST /auth/login` - Login
+- `POST /auth/refresh` - Renovar token
+
+### Tarefas
+- `GET /tasks` - Listar tarefas do usuário
+- `POST /tasks` - Criar tarefa
+- `PATCH /tasks/:id` - Atualizar tarefa
+- `DELETE /tasks/:id` - Deletar tarefa
+
+### Equipe
+- `GET /team/members` - Listar membros da equipe
+- `POST /team/invite` - Convidar membro
+- `DELETE /team/members/:id` - Remover membro
+
+---
+
+## 🛠️ Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+pnpm run dev          # Iniciar servidor de desenvolvimento
+
+# Build
+pnpm run build        # Fazer build de todos os packages
+
+# Linting
+pnpm run lint         # Executar ESLint
+pnpm run format       # Formatar código com Prettier
+
+# Database
+pnpm run db:migrate   # Executar migrações
+pnpm run db:seed      # Popular banco com dados de teste
+```
+
+---
+
+## 📝 Licença
+
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+---
+
+## 👨‍� Autor
+
+Desenvolvido com ❤️ por [André Hunter](https://github.com/andrelima-dev)
+
+**Conecte-se comigo:**
+- GitHub: [@andrelima-dev](https://github.com/andrelima-dev)
+- Email: andre@exemplo.com
 
 ### Pré-requisitos
 
@@ -120,7 +233,7 @@ cd management-system
 pnpm install
 
 # 2. Criar banco de dados
-psql -U postgres -c "CREATE DATABASE jungle_tasks;"
+psql -U postgres -c "CREATE DATABASE tasks;"
 psql -U postgres -c "CREATE USER jungle WITH PASSWORD 'jungle_pass';"
 
 # 3. Copiar variáveis de ambiente

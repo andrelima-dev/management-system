@@ -9,6 +9,23 @@ export interface AuthResponse {
   };
 }
 
+export interface TeamMember {
+  id: string;
+  email: string;
+  displayName: string;
+  role: 'admin' | 'manager' | 'member';
+  joinedAt: string;
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  description?: string;
+  members: TeamMember[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -19,6 +36,7 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   dueDate?: string;
+  assigneeIds?: string[];
 }
 
 export interface PaginatedResponse<T> {

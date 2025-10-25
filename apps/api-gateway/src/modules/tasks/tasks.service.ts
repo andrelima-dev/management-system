@@ -108,9 +108,10 @@ export class TasksService {
     }, {});
   }
 
-  list(query: ListTasksDto): Promise<PaginatedTasksResponse> {
+  list(query: ListTasksDto, userId?: string): Promise<PaginatedTasksResponse> {
     const params = this.compact(query as unknown as Record<string, unknown>);
-    return this.request<PaginatedTasksResponse>('get', '/tasks', { params });
+    const headers = userId ? this.userHeaders(userId) : undefined;
+    return this.request<PaginatedTasksResponse>('get', '/tasks', { params, headers });
   }
 
   get(id: string): Promise<TaskResponse> {
@@ -131,8 +132,9 @@ export class TasksService {
     });
   }
 
-  remove(id: string): Promise<void> {
-    return this.request<void>('delete', `/tasks/${id}`);
+  remove(id: string, userId?: string): Promise<void> {
+    const headers = userId ? this.userHeaders(userId) : undefined;
+    return this.request<void>('delete', `/tasks/${id}`, { headers });
   }
 
   createComment(taskId: string, userId: string, dto: CreateCommentDto): Promise<TaskCommentResponse> {

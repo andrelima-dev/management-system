@@ -27,8 +27,9 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  list(@Query() query: ListTasksDto): Promise<PaginationResult<TaskEntity>> {
-    return this.tasksService.list(query);
+  list(@Query() query: ListTasksDto, @Req() req: Request): Promise<PaginationResult<TaskEntity>> {
+    const userId = this.resolveUserId(req);
+    return this.tasksService.list(query, userId);
   }
 
   @Post()

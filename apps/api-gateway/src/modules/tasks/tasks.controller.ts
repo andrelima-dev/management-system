@@ -41,8 +41,9 @@ export class TasksController {
   @Get()
   @ApiOperation({ summary: 'List tasks' })
   @ApiOkResponse({ description: 'Paginated list of tasks' })
-  list(@Query() query: ListTasksDto): Promise<PaginatedTasksResponse> {
-    return this.tasksService.list(query);
+  list(@Query() query: ListTasksDto, @Req() req: AuthenticatedRequest): Promise<PaginatedTasksResponse> {
+    const userId = this.getUserId(req);
+    return this.tasksService.list(query, userId);
   }
 
   @Post()
@@ -76,8 +77,9 @@ export class TasksController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete task' })
   @ApiNoContentResponse({ description: 'Task removed successfully' })
-  remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    return this.tasksService.remove(id);
+  remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: AuthenticatedRequest): Promise<void> {
+    const userId = this.getUserId(req);
+    return this.tasksService.remove(id, userId);
   }
 
   @Get(':id/comments')
