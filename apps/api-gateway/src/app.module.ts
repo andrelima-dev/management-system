@@ -12,6 +12,7 @@ import { SecurityModule } from './infra/security/security.module';
 import { JwtAuthGuard } from './infra/security/jwt-auth.guard';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { MicroservicesModule } from './infra/microservices/microservices.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
       }
     ]),
     HttpModule.register({ timeout: 5000, maxRedirects: 0 }),
+    MicroservicesModule,
     SecurityModule,
     AuthModule,
     HealthModule,

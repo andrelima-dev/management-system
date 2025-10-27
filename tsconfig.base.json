@@ -9,9 +9,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@jungle/types/*": ["packages/types/src/*"],
       "@jungle/utils/*": ["packages/utils/src/*"],
       "@ui-kit/*": ["packages/ui-kit/src/*"]
     }

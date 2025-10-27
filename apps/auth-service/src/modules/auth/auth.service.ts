@@ -132,4 +132,47 @@ export class AuthService {
   async logout(userId: string, refreshToken: string): Promise<void> {
     await this.tokensService.revoke(userId, refreshToken);
   }
+
+  async getUserById(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    return {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      role: user.role
+    };
+  }
+
+  async getUserByEmail(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new Error(`User with email ${email} not found`);
+    }
+    return {
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      role: user.role
+    };
+  }
+
+  async validateToken(token: string) {
+    try {
+      const decoded = await this.jwtService.verifyAsync(token, {
+        secret: this.jwtConfig.accessSecret
+      });
+      return {
+        valid: true,
+        payload: decoded
+      };
+    } catch (error) {
+      return {
+        valid: false,
+        error: error instanceof Error ? error.message : 'Token validation failed'
+      };
+    }
+  }
 }

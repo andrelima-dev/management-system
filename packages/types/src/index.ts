@@ -52,3 +52,7 @@ export interface TaskSnapshot {
   createdAt: string;
   updatedAt: string;
 }
+
+// ============= MICROSERVICES EXPORTS =============
+export * from './microservices.patterns';
+export * from './microservices.dto';

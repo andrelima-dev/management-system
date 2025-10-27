@@ -1,32 +1,42 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { RefreshAuthDto } from './dto/refresh-auth.dto';
-import { LogoutAuthDto } from './dto/logout-auth.dto';
+import { AUTH_PATTERNS } from '@jungle/types';
 
-@Controller('auth')
+@Controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  register(@Body() dto: RegisterAuthDto) {
+  @MessagePattern(AUTH_PATTERNS.USER_REGISTER)
+  async register(@Payload() dto: RegisterAuthDto) {
     return this.authService.register(dto);
   }
 
-  @Post('login')
-  login(@Body() dto: LoginAuthDto) {
+  @MessagePattern(AUTH_PATTERNS.USER_LOGIN)
+  async login(@Payload() dto: LoginAuthDto) {
     return this.authService.login(dto);
   }
 
-  @Post('refresh')
-  refresh(@Body() dto: RefreshAuthDto) {
+  @MessagePattern(AUTH_PATTERNS.TOKEN_REFRESH)
+  async refresh(@Payload() dto: RefreshAuthDto) {
     return this.authService.refresh(dto);
   }
 
-  @Post('logout')
-  async logout(@Body() dto: LogoutAuthDto) {
-    await this.authService.logout(dto.userId, dto.refreshToken);
-    return { success: true };
+  @MessagePattern(AUTH_PATTERNS.USER_GET_BY_ID)
+  async getUserById(@Payload() userId: string) {
+    return this.authService.getUserById(userId);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.USER_GET_BY_EMAIL)
+  async getUserByEmail(@Payload() email: string) {
+    return this.authService.getUserByEmail(email);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.TOKEN_VALIDATE)
+  async validateToken(@Payload() token: string) {
+    return this.authService.validateToken(token);
   }
 }

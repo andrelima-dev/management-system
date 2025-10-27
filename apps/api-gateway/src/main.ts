@@ -20,8 +20,8 @@ async function bootstrap() {
   const port = configService.get<number>('app.port', 3000);
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Jungle Project API')
-    .setDescription('REST API Gateway for authentication, tasks, and notifications')
+    .setTitle('Jungle Project API Gateway')
+    .setDescription('API Gateway para autenticação, tarefas e notificações via Microservices')
     .setVersion('1.0.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
     .build();
@@ -34,7 +34,8 @@ async function bootstrap() {
   });
 
   await app.listen(port);
-  Logger.log(`API Gateway listening on port ${port}`);
+  Logger.log(`🚀 API Gateway listening on port ${port}`);
+  Logger.log(`📚 Swagger documentation available at http://localhost:${port}/api/docs`);
 }
 
 void bootstrap();

@@ -43,36 +43,47 @@ Use as credenciais abaixo para testar a aplicação:
 
 ## 🏗️ Arquitetura
 
-### Microserviços
+### Microserviços com NestJS
+
+Este projeto implementa uma **arquitetura completa de microserviços** utilizando:
+- ✅ **NestJS Microservices** - Framework para criar serviços distribuídos
+- ✅ **RabbitMQ** - Transportador de mensagens para comunicação assíncrona
+- ✅ **ClientProxy** - Cliente para comunicação entre serviços no Gateway
+- ✅ **Message Patterns** - Request/Response entre microserviços
+- ✅ **Event Patterns** - Pub/Sub para eventos distribuídos
 
 ```
                     ┌─────────────────┐
                     │   Web (React)   │
                     │ Port 5174       │
                     └────────┬────────┘
-                             │
+                             │ HTTP/REST
                     ┌────────▼────────┐
                     │  API Gateway    │
                     │  Port 3000      │
-                    └─┬──────────┬────┘
-                      │          │
-        ┌─────────────┼──┬───────┼──┬──────────┐
-        │             │  │       │  │          │
-    ┌───▼────┐  ┌────▼──▼─┐ ┌───▼──▼──────┐  │
-    │  Auth   │  │ Tasks   │ │Notif.       │  │
-    │Service  │  │Service  │ │Service      │  │
-    │:3001    │  │:3002    │ │:3003        │  │
-    └────┬────┘  └────┬────┘ └────┬────────┘  │
-         │            │            │           │
-         └────────────┼────────────┴───────────┘
-                      │
-           ┌──────────┴──────────┐
-           │                     │
-        ┌──▼────────┐      ┌────▼──────┐
-        │PostgreSQL │      │ RabbitMQ  │
-        │:5432      │      │ :5672     │
-        └───────────┘      └───────────┘
+                    │  (HTTP Server)  │
+                    └────────┬────────┘
+                             │ AMQP/RabbitMQ (ClientProxy)
+            ┌────────────────┼────────────────┐
+            │                │                │
+    ┌───────▼────────┐   ┌───▼────────────┐  ┌──────▼─────────────┐
+    │ Auth Service   │   │ Tasks Service  │  │ Notifications      │
+    │ Port: N/A      │   │ Port: N/A      │  │ Service Port: N/A  │
+    │ Queue: auth    │   │ Queue: tasks   │  │ Queue: notif       │
+    │ (Microservice) │   │ (Microservice) │  │ (Microservice)     │
+    └───────┬────────┘   └───┬────────────┘  └──────┬─────────────┘
+            │                │                      │
+            └────────────────┼──────────────────────┘
+                             │
+         ┌───────────────────┼──────────────────┐
+         │                   │                  │
+      ┌──▼────────┐      ┌───▼───────────┐  ┌─▼──────────┐
+      │PostgreSQL │      │  RabbitMQ     │  │  Redis     │
+      │:5432      │      │ :5672 / :15672│  │ (opcional) │
+      └───────────┘      └────────────────┘  └────────────┘
 ```
+
+📚 **Consulte [MICROSERVICES_GUIDE.md](./MICROSERVICES_GUIDE.md) para documentação completa da arquitetura!**
 
 ### Stack Tecnológico
 
@@ -80,24 +91,17 @@ Use as credenciais abaixo para testar a aplicação:
 |-----------|-----------|
 | **Frontend** | React 18, TypeScript, Tailwind CSS, Zustand |
 | **Backend** | NestJS, TypeORM, PostgreSQL |
+| **Microserviços** | NestJS Microservices, RabbitMQ |
 | **Autenticação** | JWT, Argon2 |
-| **Mensageria** | RabbitMQ |
+| **Mensageria** | RabbitMQ (AMQP Transport) |
 | **Infraestrutura** | Docker, Docker Compose |
 | **Build** | Turborepo, pnpm |
 
 ---
 
-## 🚀 Quick Start
+## 🏗️ Arquitetura
 
-### Pré-requisitos
-
-- Node.js v22+
-- Docker & Docker Compose
-- pnpm (ou npm)
-
-### Instalação e Execução
-
-```bash
+### Microserviços
 # 1. Clonar repositório
 git clone https://github.com/seu-usuario/management-system.git
 cd management-system

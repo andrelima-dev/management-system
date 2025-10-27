@@ -250,4 +250,50 @@ export class TasksService {
       throw new NotFoundException('Task not found');
     }
   }
+
+  // ============= Métodos adicionais para Microservices =============
+
+  async findById(id: string): Promise<TaskEntity> {
+    return this.getById(id);
+  }
+
+  async findAll(): Promise<TaskEntity[]> {
+    return this.tasksRepository.find({
+      order: { createdAt: 'DESC' }
+    });
+  }
+
+  async delete(id: string, authorId: string): Promise<void> {
+    const task = await this.getById(id);
+    await this.remove(id);
+  }
+
+  async getByUser(userId: string, filters?: { status?: string; priority?: string }): Promise<TaskEntity[]> {
+    const qb = this.tasksRepository.createQueryBuilder('task')
+      .where('task.createdById = :userId', { userId });
+
+    if (filters?.status) {
+      qb.andWhere('task.status = :status', { status: filters.status });
+    }
+
+    if (filters?.priority) {
+      qb.andWhere('task.priority = :priority', { priority: filters.priority });
+    }
+
+    return qb.orderBy('task.createdAt', 'DESC').getMany();
+  }
+
+  async updateStatus(taskId: string, status: TaskStatus, authorId: string): Promise<TaskEntity> {
+    const task = await this.getById(taskId);
+    const oldStatus = task.status;
+    task.status = status;
+    await this.tasksRepository.save(task);
+    await this.recordHistory(taskId, 'task.status_changed', { oldStatus, newStatus: status }, authorId);
+    await this.messagingService.publish('task.status_changed', {
+      taskId,
+      oldStatus,
+      newStatus: status
+    });
+    return task;
+  }
 }
