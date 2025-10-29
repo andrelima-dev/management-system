@@ -4,7 +4,7 @@ import { useAuth } from "@/stores/authStore"
 
 let socket: Socket | null = null
 
-export function useSocket() {
+export function useSocket(): Socket | null {
   const { accessToken } = useAuth()
 
   useEffect(() => {
@@ -17,7 +17,8 @@ export function useSocket() {
     }
 
     if (!socket) {
-      socket = io("http://localhost:3000", {
+      const url = import.meta.env.VITE_WS_URL || "http://localhost:3003";
+      socket = io(url, {
         auth: {
           token: accessToken,
         },

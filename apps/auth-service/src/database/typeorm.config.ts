@@ -1,32 +1,32 @@
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { UserEntity } from '../modules/users/user.entity';
-import { RefreshTokenEntity } from '../modules/tokens/refresh-token.entity';
+import { DataSource, type DataSourceOptions } from 'typeorm';
+import { authDataSourceOptions } from './data-source';
 
 export const typeOrmConfig = async (
   configService: ConfigService
-): Promise<TypeOrmModuleOptions> => ({
-  type: 'postgres',
-  url: configService.get<string>('app.databaseUrl'),
-  entities: [UserEntity, RefreshTokenEntity],
-  synchronize: false,
-  logging: true,
-  migrations: ['dist/migrations/*.js'],
-  ssl:
-    configService.get<boolean>('app.databaseSsl')
-      ? { rejectUnauthorized: false }
-      : undefined
-});
+): Promise<TypeOrmModuleOptions> => {
+  const ssl = configService.get<boolean>('app.databaseSsl')
+    ? { rejectUnauthorized: false }
+    : undefined;
+
+  const options = {
+    ...authDataSourceOptions,
+    url: configService.get<string>('app.databaseUrl') ?? undefined,
+    synchronize: false,
+    logging: true,
+    ssl
+  } as DataSourceOptions;
+
+  return options as TypeOrmModuleOptions;
+};
 
 export const createDataSource = (configService: ConfigService) =>
   new DataSource({
-    type: 'postgres',
-    url: configService.get<string>('app.databaseUrl'),
-    entities: [UserEntity, RefreshTokenEntity],
-    migrations: ['dist/migrations/*.js'],
+    ...authDataSourceOptions,
+    url: configService.get<string>('app.databaseUrl') ?? undefined,
     ssl:
       configService.get<boolean>('app.databaseSsl')
         ? { rejectUnauthorized: false }
         : undefined
-  });
+  } as DataSourceOptions);

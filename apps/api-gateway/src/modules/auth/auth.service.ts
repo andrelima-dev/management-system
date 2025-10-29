@@ -1,111 +1,42 @@
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
-import { AxiosError, AxiosResponse } from 'axios';
-import { lastValueFrom } from 'rxjs';
+import { Injectable } from '@nestjs/common';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { RefreshAuthDto } from './dto/refresh-auth.dto';
 import { LogoutAuthDto } from './dto/logout-auth.dto';
-
-export interface AuthUserPayload {
-  id: string;
-  email: string;
-  displayName: string;
-  role: string;
-}
-
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: AuthUserPayload;
-}
+import { MicroservicesClientService } from '../../infra/microservices/microservices-client.service';
+import { type AuthResponse } from '@jungle/types';
 
 @Injectable()
 export class AuthService {
-  private readonly baseUrl: string;
+  constructor(private readonly microservicesClient: MicroservicesClientService) {}
 
-  constructor(
-    private readonly httpService: HttpService,
-    configService: ConfigService
-  ) {
-    this.baseUrl = configService.get<string>('app.authServiceUrl', {
-      infer: true
-    }) as string;
+  register(dto: RegisterAuthDto): Promise<AuthResponse> {
+    return this.microservicesClient.registerUser({
+      email: dto.email,
+      password: dto.password,
+      displayName: dto.displayName
+    });
   }
 
-  private async request<T>(
-    method: 'post' | 'patch' | 'get',
-    path: string,
-    payload?: unknown
-  ): Promise<T> {
-    try {
-      const response = await lastValueFrom(
-        this.httpService.request<T>({
-          method,
-          url: `${this.baseUrl}${path}`,
-          data: payload
-        })
-      );
-      return this.unwrap(response);
-    } catch (error) {
-      throw this.mapError(error);
-    }
+  login(dto: LoginAuthDto): Promise<AuthResponse> {
+    return this.microservicesClient.loginUser({
+      email: dto.email,
+      password: dto.password
+    });
   }
 
-  private unwrap<T>(response: AxiosResponse<T>): T {
-    return response.data;
+  refresh(dto: RefreshAuthDto): Promise<AuthResponse> {
+    return this.microservicesClient.refreshToken({
+      userId: dto.userId,
+      refreshToken: dto.refreshToken
+    });
   }
 
-  private mapError(error: unknown): HttpException {
-    if (error instanceof HttpException) {
-      return error;
-    }
-
-    if (this.isAxiosError(error) && error.response) {
-      return new HttpException(
-        this.normalizeErrorPayload(error.response.data),
-        error.response.status
-      );
-    }
-
-    return new InternalServerErrorException('Auth service unavailable');
-  }
-
-  private isAxiosError(value: unknown): value is AxiosError {
-    return !!value && typeof value === 'object' && 'isAxiosError' in value;
-  }
-
-  private normalizeErrorPayload(data: unknown): string | Record<string, unknown> {
-    if (typeof data === 'string') {
-      return data;
-    }
-
-    if (data && typeof data === 'object') {
-      return data as Record<string, unknown>;
-    }
-
-    return 'Unknown error';
-  }
-
-  register(dto: RegisterAuthDto) {
-    return this.request<AuthResponse>('post', '/auth/register', dto);
-  }
-
-  login(dto: LoginAuthDto) {
-    return this.request<AuthResponse>('post', '/auth/login', dto);
-  }
-
-  refresh(dto: RefreshAuthDto) {
-    return this.request<AuthResponse>('post', '/auth/refresh', dto);
-  }
-
-  async logout(dto: LogoutAuthDto) {
-    await this.request<{ success: boolean }>('post', '/auth/logout', dto);
+  async logout(dto: LogoutAuthDto): Promise<{ success: boolean }> {
+    await this.microservicesClient.revokeToken({
+      userId: dto.userId,
+      refreshToken: dto.refreshToken
+    });
     return { success: true };
   }
 }

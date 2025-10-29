@@ -5,6 +5,7 @@ import { appConfig } from './config/app.config';
 import { typeormConfig } from './config/typeorm.config';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { MessagingModule } from './modules/messaging/messaging.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 
 @Module({
   imports: [
@@ -14,7 +15,8 @@ import { MessagingModule } from './modules/messaging/messaging.module';
     }),
     TypeOrmModule.forRootAsync(typeormConfig()),
     NotificationsModule,
-    MessagingModule
+    MessagingModule,
+    RealtimeModule
   ],
   controllers: [],
   providers: []

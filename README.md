@@ -113,7 +113,7 @@ pnpm install
 docker-compose up -d
 
 # 4. Executar migrações do banco de dados
-pnpm run db:migrate
+pnpm run migration:run
 
 # 5. Iniciar desenvolvimento (Frontend)
 cd apps/web
@@ -195,8 +195,8 @@ pnpm run lint         # Executar ESLint
 pnpm run format       # Formatar código com Prettier
 
 # Database
-pnpm run db:migrate   # Executar migrações
-pnpm run db:seed      # Popular banco com dados de teste
+pnpm run migration:run     # Executar migrações (Auth e Tasks)
+pnpm run migration:revert  # Reverter última migração executada
 ```
 
 ---

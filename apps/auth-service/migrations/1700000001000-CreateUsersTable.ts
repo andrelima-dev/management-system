@@ -1,7 +1,9 @@
-import { MigrationInterface, QueryRunner, Table } from 'typeorm'
+import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
 
 export class CreateUsersTable1700000001000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+
     await queryRunner.createTable(
       new Table({
         name: 'users',
@@ -11,49 +13,61 @@ export class CreateUsersTable1700000001000 implements MigrationInterface {
             type: 'uuid',
             isPrimary: true,
             generationStrategy: 'uuid',
-            default: 'uuid_generate_v4()',
+            default: 'uuid_generate_v4()'
           },
           {
             name: 'email',
             type: 'varchar',
-            isUnique: true,
-            isNullable: false,
+            length: '255',
+            isNullable: false
           },
           {
-            name: 'displayName',
+            name: 'password_hash',
             type: 'varchar',
-            isNullable: false,
+            length: '255',
+            isNullable: false
           },
           {
-            name: 'passwordHash',
+            name: 'display_name',
             type: 'varchar',
-            isNullable: false,
+            length: '120',
+            isNullable: false
           },
           {
             name: 'role',
             type: 'varchar',
-            default: "'user'",
+            length: '20',
             isNullable: false,
+            default: "'member'"
           },
           {
-            name: 'createdAt',
-            type: 'timestamp',
-            default: 'now()',
+            name: 'created_at',
+            type: 'TIMESTAMP WITH TIME ZONE',
             isNullable: false,
+            default: 'now()'
           },
           {
-            name: 'updatedAt',
-            type: 'timestamp',
-            default: 'now()',
+            name: 'updated_at',
+            type: 'TIMESTAMP WITH TIME ZONE',
             isNullable: false,
-          },
-        ],
-      }),
-      true,
-    )
+            default: 'now()'
+          }
+        ]
+      })
+    );
+
+    await queryRunner.createIndex(
+      'users',
+      new TableIndex({
+        name: 'users_email_unique',
+        columnNames: ['email'],
+        isUnique: true
+      })
+    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropTable('users')
+    await queryRunner.dropIndex('users', 'users_email_unique');
+    await queryRunner.dropTable('users');
   }
 }

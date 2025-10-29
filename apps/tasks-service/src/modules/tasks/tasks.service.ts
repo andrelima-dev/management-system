@@ -58,14 +58,24 @@ export class TasksService {
       );
     }
 
-    const [items, total] = await qb.skip((page - 1) * pageSize).take(pageSize).getManyAndCount();
+    const [items, total]: [TaskEntity[], number] = await qb
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .getManyAndCount();
 
-    return { items, total, page, pageSize };
+  const hydrated = await Promise.all(items.map(item => this.getById(item.id)));
+
+  return { items: hydrated, total, page, pageSize };
   }
 
   async getById(id: string): Promise<TaskEntity> {
     const task = await this.tasksRepository.findOne({
-      where: { id }
+      where: { id },
+      relations: {
+        assignees: true,
+        comments: true,
+        history: true
+      }
     });
 
     if (!task) {
@@ -88,7 +98,12 @@ export class TasksService {
     const created = await this.tasksRepository.save(task);
     await this.syncAssignees(created.id, dto.assigneeIds);
     await this.recordHistory(created.id, 'task.created', { title: dto.title }, authorId);
-    await this.messagingService.publish('task.created', { taskId: created.id });
+    // Publica evento conforme README: task:created, com dados úteis aos consumidores
+    await this.messagingService.publish('task:created', {
+      id: created.id,
+      title: created.title,
+      assigneeIds: dto.assigneeIds ?? []
+    });
 
     return this.getById(created.id);
   }
@@ -157,8 +172,11 @@ export class TasksService {
           this.recordHistory(id, entry.action, entry.metadata, authorId)
         )
       );
-      await this.messagingService.publish('task.updated', {
-        taskId: id,
+      // Publica evento conforme README: task:updated
+      await this.messagingService.publish('task:updated', {
+        id,
+        title: task.title,
+        assigneeIds: (task.assignees ?? []).map(a => a.userId),
         actions: historyPayload.map(entry => entry.action)
       });
     }
@@ -168,8 +186,8 @@ export class TasksService {
 
   async remove(id: string): Promise<void> {
     await this.assertTaskExists(id);
-    await this.tasksRepository.delete(id);
-    await this.messagingService.publish('task.deleted', { taskId: id });
+  await this.tasksRepository.delete(id);
+  // Evento de deleção não é exigido no README; mantendo apenas persistência.
   }
 
   async addComment(taskId: string, dto: CreateCommentDto, authorId: string): Promise<CommentEntity> {
@@ -182,7 +200,8 @@ export class TasksService {
     const saved = await this.commentsRepository.save(comment);
 
     await this.recordHistory(taskId, 'comment.created', { commentId: saved.id }, authorId);
-    await this.messagingService.publish('task.commented', {
+    // Publica evento conforme README: comment:new
+    await this.messagingService.publish('comment:new', {
       taskId,
       commentId: saved.id,
       authorId
@@ -259,6 +278,11 @@ export class TasksService {
 
   async findAll(): Promise<TaskEntity[]> {
     return this.tasksRepository.find({
+      relations: {
+        assignees: true,
+        comments: true,
+        history: true
+      },
       order: { createdAt: 'DESC' }
     });
   }
@@ -280,7 +304,8 @@ export class TasksService {
       qb.andWhere('task.priority = :priority', { priority: filters.priority });
     }
 
-    return qb.orderBy('task.createdAt', 'DESC').getMany();
+  const tasks: TaskEntity[] = await qb.orderBy('task.createdAt', 'DESC').getMany();
+  return Promise.all(tasks.map((task: TaskEntity) => this.getById(task.id)));
   }
 
   async updateStatus(taskId: string, status: TaskStatus, authorId: string): Promise<TaskEntity> {
@@ -289,8 +314,11 @@ export class TasksService {
     task.status = status;
     await this.tasksRepository.save(task);
     await this.recordHistory(taskId, 'task.status_changed', { oldStatus, newStatus: status }, authorId);
-    await this.messagingService.publish('task.status_changed', {
-      taskId,
+    // Publica evento conforme README: task:updated
+    await this.messagingService.publish('task:updated', {
+      id: taskId,
+      title: task.title,
+      assigneeIds: (task.assignees ?? []).map(a => a.userId),
       oldStatus,
       newStatus: status
     });

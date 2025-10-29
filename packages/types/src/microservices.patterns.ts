@@ -16,6 +16,9 @@ export const AUTH_PATTERNS = {
   
   // Refresh token
   TOKEN_REFRESH: 'auth.token.refresh',
+
+  // Revoke refresh token
+  TOKEN_REVOKE: 'auth.token.revoke',
   
   // Get user by ID
   USER_GET_BY_ID: 'auth.user.get_by_id',

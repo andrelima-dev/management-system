@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { RefreshAuthDto } from './dto/refresh-auth.dto';
+import { LogoutAuthDto } from './dto/logout-auth.dto';
 import { AUTH_PATTERNS } from '@jungle/types';
 
 @Controller()
@@ -23,6 +24,12 @@ export class AuthController {
   @MessagePattern(AUTH_PATTERNS.TOKEN_REFRESH)
   async refresh(@Payload() dto: RefreshAuthDto) {
     return this.authService.refresh(dto);
+  }
+
+  @MessagePattern(AUTH_PATTERNS.TOKEN_REVOKE)
+  async revoke(@Payload() dto: LogoutAuthDto) {
+    await this.authService.logout(dto.userId, dto.refreshToken);
+    return { success: true };
   }
 
   @MessagePattern(AUTH_PATTERNS.USER_GET_BY_ID)

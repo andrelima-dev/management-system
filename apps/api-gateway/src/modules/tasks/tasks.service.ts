@@ -1,12 +1,4 @@
-import {
-  HttpException,
-  Injectable,
-  InternalServerErrorException
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
-import { AxiosError, AxiosRequestConfig, AxiosResponse, Method } from 'axios';
-import { lastValueFrom } from 'rxjs';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ListTasksDto } from './dto/list-tasks.dto';
@@ -17,148 +9,168 @@ import {
   TaskHistoryResponse,
   TaskResponse
 } from './interfaces/task-responses.interface';
+import { MicroservicesClientService } from '../../infra/microservices/microservices-client.service';
 
-interface RequestOptions {
-  data?: unknown;
-  params?: Record<string, unknown>;
-  headers?: Record<string, string>;
-}
+type RemoteTask = Record<string, any>;
 
 @Injectable()
 export class TasksService {
-  private readonly baseUrl: string;
+  constructor(private readonly microservicesClient: MicroservicesClientService) {}
 
-  constructor(
-    private readonly httpService: HttpService,
-    configService: ConfigService
-  ) {
-    this.baseUrl = configService.get<string>('app.tasksServiceUrl', {
-      infer: true
-    }) as string;
-  }
-
-  private async request<T>(
-    method: Method,
-    path: string,
-    options: RequestOptions = {}
-  ): Promise<T> {
-    const config: AxiosRequestConfig = {
-      method,
-      url: `${this.baseUrl}${path}`,
-      data: options.data,
-      params: options.params,
-      headers: options.headers
-    };
-
-    try {
-      const response = await lastValueFrom(this.httpService.request<T>(config));
-      return this.unwrap(response);
-    } catch (error) {
-      throw this.mapError(error);
+  private toIso(value?: string | Date | null): string | undefined {
+    if (!value) {
+      return undefined;
     }
-  }
-
-  private unwrap<T>(response: AxiosResponse<T>): T {
-    return response.data;
-  }
-
-  private mapError(error: unknown): HttpException {
-    if (error instanceof HttpException) {
-      return error;
+    if (typeof value === 'string') {
+      return value;
     }
-
-    if (this.isAxiosError(error) && error.response) {
-      return new HttpException(
-        this.normalizeErrorPayload(error.response.data),
-        error.response.status
-      );
-    }
-
-    return new InternalServerErrorException('Tasks service unavailable');
+    return value.toISOString();
   }
 
-  private isAxiosError(value: unknown): value is AxiosError {
-    return !!value && typeof value === 'object' && 'isAxiosError' in value;
-  }
-
-  private normalizeErrorPayload(data: unknown): string | Record<string, unknown> {
-    if (typeof data === 'string') {
-      return data;
-    }
-
-    if (data && typeof data === 'object') {
-      return data as Record<string, unknown>;
-    }
-
-    return 'Unknown error';
-  }
-
-  private userHeaders(userId: string): Record<string, string> {
+  private mapComment(comment: Record<string, any>): TaskCommentResponse {
     return {
-      'x-user-id': userId
+      id: comment.id,
+      authorId: comment.authorId,
+      content: comment.content,
+      createdAt: this.toIso(comment.createdAt) ?? new Date().toISOString()
     };
   }
 
-  private compact(params: Record<string, unknown>): Record<string, unknown> {
-    return Object.entries(params).reduce<Record<string, unknown>>((acc, [key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        acc[key] = value;
-      }
-      return acc;
-    }, {});
+  private mapHistory(entry: Record<string, any>): TaskHistoryResponse {
+    return {
+      id: entry.id,
+      action: entry.action,
+      metadata: entry.metadata ?? null,
+      performedById: entry.performedById ?? null,
+      createdAt: this.toIso(entry.createdAt) ?? new Date().toISOString()
+    };
   }
 
-  list(query: ListTasksDto, userId?: string): Promise<PaginatedTasksResponse> {
-    const params = this.compact(query as unknown as Record<string, unknown>);
-    const headers = userId ? this.userHeaders(userId) : undefined;
-    return this.request<PaginatedTasksResponse>('get', '/tasks', { params, headers });
+  private mapTask(task: RemoteTask): TaskResponse {
+    const comments = Array.isArray(task.comments)
+      ? task.comments.map(comment => this.mapComment(comment))
+      : [];
+    const history = Array.isArray(task.history)
+      ? task.history
+          .map(entry => this.mapHistory(entry))
+          .sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1))
+      : [];
+
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description ?? null,
+      dueDate: this.toIso(task.dueDate) ?? null,
+      priority: task.priority,
+      status: task.status,
+      createdById: task.createdById,
+      createdAt: this.toIso(task.createdAt) ?? new Date().toISOString(),
+      updatedAt: this.toIso(task.updatedAt) ?? new Date().toISOString(),
+      commentsCount: comments.length,
+      assignees: Array.isArray(task.assignees)
+        ? task.assignees.map((assignee: Record<string, any>) => ({
+            id: assignee.id,
+            userId: assignee.userId
+          }))
+        : [],
+      comments,
+      history
+    };
   }
 
-  get(id: string): Promise<TaskResponse> {
-    return this.request<TaskResponse>('get', `/tasks/${id}`);
-  }
-
-  create(userId: string, dto: CreateTaskDto): Promise<TaskResponse> {
-    return this.request<TaskResponse>('post', '/tasks', {
-      data: dto,
-      headers: this.userHeaders(userId)
+  private applySearch(tasks: RemoteTask[], search?: string): RemoteTask[] {
+    if (!search) {
+      return tasks;
+    }
+    const normalized = search.toLowerCase();
+    return tasks.filter(task => {
+      const title = String(task.title ?? '').toLowerCase();
+      const description = String(task.description ?? '').toLowerCase();
+      return title.includes(normalized) || description.includes(normalized);
     });
   }
 
-  update(id: string, userId: string, dto: UpdateTaskDto): Promise<TaskResponse> {
-    return this.request<TaskResponse>('patch', `/tasks/${id}`, {
-      data: dto,
-      headers: this.userHeaders(userId)
+  private paginate<T>(items: T[], page: number, pageSize: number): T[] {
+    const start = (page - 1) * pageSize;
+    return items.slice(start, start + pageSize);
+  }
+
+  async list(query: ListTasksDto, userId?: string): Promise<PaginatedTasksResponse> {
+    const filters = {
+      status: query.status,
+      priority: query.priority
+    };
+
+    const rawTasks: RemoteTask[] = userId
+      ? await this.microservicesClient.getTasksByUser(userId, filters)
+      : await this.microservicesClient.getAllTasks();
+
+    const filtered = this.applySearch(rawTasks, query.search);
+    const page = query.page && query.page > 0 ? query.page : 1;
+    const pageSize = query.pageSize && query.pageSize > 0 ? query.pageSize : 10;
+    const total = filtered.length;
+
+    const pageItems = this.paginate(filtered, page, pageSize).map(task => this.mapTask(task));
+
+    return {
+      items: pageItems,
+      total,
+      page,
+      pageSize
+    };
+  }
+
+  async get(id: string): Promise<TaskResponse> {
+    const task = await this.microservicesClient.getTaskById(id);
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    return this.mapTask(task as RemoteTask);
+  }
+
+  async create(userId: string, dto: CreateTaskDto): Promise<TaskResponse> {
+    const created = await this.microservicesClient.createTask({
+      ...dto,
+      userId
     });
+    return this.mapTask(created as RemoteTask);
   }
 
-  remove(id: string, userId?: string): Promise<void> {
-    const headers = userId ? this.userHeaders(userId) : undefined;
-    return this.request<void>('delete', `/tasks/${id}`, { headers });
+  async update(id: string, userId: string, dto: UpdateTaskDto): Promise<TaskResponse> {
+    const updated = await this.microservicesClient.updateTask({
+      id,
+      userId,
+      ...dto
+    });
+    return this.mapTask(updated as RemoteTask);
   }
 
-  createComment(taskId: string, userId: string, dto: CreateCommentDto): Promise<TaskCommentResponse> {
-    return this.request<TaskCommentResponse>(
-      'post',
-      `/tasks/${taskId}/comments`,
-      {
-        data: dto,
-        headers: this.userHeaders(userId)
-      }
-    );
+  async remove(id: string, userId?: string): Promise<void> {
+    if (!userId) {
+      throw new BadRequestException('Missing user context');
+    }
+    await this.microservicesClient.deleteTask(id, userId);
   }
 
-  listComments(taskId: string): Promise<TaskCommentResponse[]> {
-    return this.request<TaskCommentResponse[]>(
-      'get',
-      `/tasks/${taskId}/comments`
-    );
+  async createComment(taskId: string, userId: string, dto: CreateCommentDto): Promise<TaskCommentResponse> {
+    const comment = await this.microservicesClient.createComment({
+      taskId,
+      userId,
+      content: dto.content
+    });
+    return this.mapComment(comment as Record<string, any>);
   }
 
-  listHistory(taskId: string): Promise<TaskHistoryResponse[]> {
-    return this.request<TaskHistoryResponse[]>(
-      'get',
-      `/tasks/${taskId}/history`
-    );
+  async listComments(taskId: string): Promise<TaskCommentResponse[]> {
+    const comments = await this.microservicesClient.getCommentsByTask(taskId);
+    return (comments as Record<string, any>[]).map(comment => this.mapComment(comment));
+  }
+
+  async listHistory(taskId: string): Promise<TaskHistoryResponse[]> {
+    const task = await this.microservicesClient.getTaskById(taskId);
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    return this.mapTask(task as RemoteTask).history;
   }
 }

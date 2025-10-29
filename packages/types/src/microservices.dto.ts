@@ -7,7 +7,7 @@
 export interface RegisterUserDto {
   email: string;
   password: string;
-  name: string;
+  displayName: string;
 }
 
 export interface LoginUserDto {
@@ -20,6 +20,12 @@ export interface ValidateTokenDto {
 }
 
 export interface RefreshTokenDto {
+  userId: string;
+  refreshToken: string;
+}
+
+export interface LogoutTokenDto {
+  userId: string;
   refreshToken: string;
 }
 
@@ -29,14 +35,16 @@ export interface AuthResponse {
   user: {
     id: string;
     email: string;
-    name: string;
+    displayName: string;
+    role: string;
   };
 }
 
 export interface UserResponse {
   id: string;
   email: string;
-  name: string;
+  displayName: string;
+  role: string;
   createdAt: Date;
 }
 

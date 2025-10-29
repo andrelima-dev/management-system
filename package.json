@@ -8,7 +8,9 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "migration:run": "pnpm --filter @jungle/auth-service run migration:run && pnpm --filter @jungle/tasks-service run migration:run",
+    "migration:revert": "pnpm --filter @jungle/tasks-service run migration:revert && pnpm --filter @jungle/auth-service run migration:revert"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",

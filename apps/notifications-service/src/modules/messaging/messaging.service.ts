@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
 import { NotificationsService } from '../notifications/notifications.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 
 interface TaskEvent {
   id: string;
@@ -20,9 +21,13 @@ interface CommentEvent {
 
 @Injectable()
 export class MessagingService {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly realtimeGateway: RealtimeGateway
+  ) {}
 
-  @EventPattern('task.created')
+  // Alinha aos eventos definidos no README
+  @EventPattern('task:created')
   async handleTaskCreated(@Payload() event: TaskEvent, @Ctx() context: RmqContext) {
     try {
       // Notificar todos os assignees
@@ -35,6 +40,7 @@ export class MessagingService {
             relatedTaskId: event.id
           });
         }
+        this.realtimeGateway.emit('task:created', event);
       }
       context.getChannelRef().ack(context.getMessage());
     } catch (error) {
@@ -42,7 +48,7 @@ export class MessagingService {
     }
   }
 
-  @EventPattern('task.updated')
+  @EventPattern('task:updated')
   async handleTaskUpdated(@Payload() event: TaskEvent, @Ctx() context: RmqContext) {
     try {
       // Notificar sobre status changes
@@ -56,6 +62,7 @@ export class MessagingService {
             relatedTaskId: event.id
           });
         }
+        this.realtimeGateway.emit('task:updated', event);
       }
       context.getChannelRef().ack(context.getMessage());
     } catch (error) {
@@ -63,11 +70,11 @@ export class MessagingService {
     }
   }
 
-  @EventPattern('comment.added')
+  @EventPattern('comment:new')
   async handleCommentAdded(@Payload() event: CommentEvent, @Ctx() context: RmqContext) {
     try {
-      // Notificar assignees sobre novo comentário
-      // Nota: Em produção, precisaríamos buscar os assignees da task
+  // Notificar assignees sobre novo comentário (persistência e evento WS)
+  this.realtimeGateway.emit('comment:new', event);
       context.getChannelRef().ack(context.getMessage());
     } catch (error) {
       console.error('Error handling comment.added event:', error);

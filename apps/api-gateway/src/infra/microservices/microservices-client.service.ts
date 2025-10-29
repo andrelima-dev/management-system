@@ -8,9 +8,14 @@ import {
   type RegisterUserDto,
   type LoginUserDto,
   type RefreshTokenDto,
+  type LogoutTokenDto,
   type CreateTaskDto,
   type UpdateTaskDto,
+  type CreateCommentDto,
+  type CommentResponse,
   type SendNotificationDto,
+  type MarkNotificationAsReadDto,
+  type NotificationResponse,
 } from '@jungle/types';
 
 @Injectable()
@@ -68,6 +73,21 @@ export class MicroservicesClientService {
     } catch (error) {
       this.logger.error('Error refreshing token:', error);
       throw new BadRequestException('Failed to refresh token');
+    }
+  }
+
+  async revokeToken(dto: LogoutTokenDto) {
+    this.logger.log('Calling auth.token.revoke');
+    try {
+      const result = await firstValueFrom(
+        this.authService.send(AUTH_PATTERNS.TOKEN_REVOKE, dto).pipe(
+          timeout(this.REQUEST_TIMEOUT)
+        )
+      );
+      return result;
+    } catch (error) {
+      this.logger.error('Error revoking token:', error);
+      throw new BadRequestException('Failed to revoke token');
     }
   }
 
@@ -208,9 +228,39 @@ export class MicroservicesClientService {
     }
   }
 
+  async createComment(dto: CreateCommentDto) {
+    this.logger.log('Calling tasks.comment.create');
+    try {
+      const result = await firstValueFrom(
+        this.tasksService.send(TASKS_PATTERNS.COMMENT_CREATE, dto).pipe(
+          timeout(this.REQUEST_TIMEOUT)
+        )
+      );
+      return result as CommentResponse;
+    } catch (error) {
+      this.logger.error('Error creating comment:', error);
+      throw new BadRequestException('Failed to create comment');
+    }
+  }
+
+  async getCommentsByTask(taskId: string) {
+    this.logger.log('Calling tasks.comment.get_by_task');
+    try {
+      const result = await firstValueFrom(
+        this.tasksService.send(TASKS_PATTERNS.COMMENT_GET_BY_TASK, taskId).pipe(
+          timeout(this.REQUEST_TIMEOUT)
+        )
+      );
+      return result as CommentResponse[];
+    } catch (error) {
+      this.logger.error('Error fetching task comments:', error);
+      return [] as CommentResponse[];
+    }
+  }
+
   // ============= NOTIFICATIONS SERVICE CALLS =============
 
-  async sendNotification(dto: SendNotificationDto) {
+  async sendNotification(dto: SendNotificationDto): Promise<NotificationResponse> {
     this.logger.log('Calling notifications.notification.send');
     try {
       const result = await firstValueFrom(
@@ -218,25 +268,55 @@ export class MicroservicesClientService {
           timeout(this.REQUEST_TIMEOUT)
         )
       );
-      return result;
+      return result as NotificationResponse;
     } catch (error) {
       this.logger.error('Error sending notification:', error);
-      return { success: false };
+      throw new BadRequestException('Failed to send notification');
     }
   }
 
-  async getNotificationsByUser(userId: string) {
+  async getNotificationsByUser(userId: string): Promise<NotificationResponse[]> {
     this.logger.log('Calling notifications.notification.get_by_user');
     try {
       const result = await firstValueFrom(
-        this.notificationsService.send(NOTIFICATIONS_PATTERNS.NOTIFICATION_GET_BY_USER, userId).pipe(
-          timeout(this.REQUEST_TIMEOUT)
-        )
+        this.notificationsService
+          .send(NOTIFICATIONS_PATTERNS.NOTIFICATION_GET_BY_USER, userId)
+          .pipe(timeout(this.REQUEST_TIMEOUT))
       );
-      return result;
+      return result as NotificationResponse[];
     } catch (error) {
       this.logger.error('Error getting notifications:', error);
-      return [];
+      return [] as NotificationResponse[];
+    }
+  }
+
+  async getNotificationById(notificationId: string): Promise<NotificationResponse | null> {
+    this.logger.log('Calling notifications.notification.get_by_id');
+    try {
+      const result = await firstValueFrom(
+        this.notificationsService
+          .send(NOTIFICATIONS_PATTERNS.NOTIFICATION_GET_BY_ID, notificationId)
+          .pipe(timeout(this.REQUEST_TIMEOUT))
+      );
+      return result as NotificationResponse;
+    } catch (error) {
+      this.logger.error('Error getting notification by id:', error);
+      return null;
+    }
+  }
+
+  async markNotificationAsRead(dto: MarkNotificationAsReadDto): Promise<{ success: boolean }> {
+    this.logger.log('Calling notifications.notification.mark_as_read');
+    try {
+      const result = await firstValueFrom(
+        this.notificationsService
+          .send(NOTIFICATIONS_PATTERNS.NOTIFICATION_MARK_AS_READ, dto)
+          .pipe(timeout(this.REQUEST_TIMEOUT))
+      );
+      return result as { success: boolean };
+    } catch (error) {
+      this.logger.error('Error marking notification as read:', error);
+      return { success: false };
     }
   }
 }
