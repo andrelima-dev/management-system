@@ -370,6 +370,4 @@ docker-compose up      # Docker Compose
 ---
 
 
-Desenvolvido com ❤️ para aprendizado e crescimento profissional.
-
 </div>
