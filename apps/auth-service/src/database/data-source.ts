@@ -5,7 +5,7 @@ import { UserEntity } from '../modules/users/user.entity';
 import { RefreshTokenEntity } from '../modules/tokens/refresh-token.entity';
 
 const fileExtension = __filename.endsWith('.ts') ? 'ts' : 'js';
-const migrationsDir = join(__dirname, '..', '..', 'migrations', `*.${fileExtension}`);
+const migrationsDir = join(__dirname, '..', '..', 'migrations', `*.${fileExtension}`) + (process.env.NODE_ENV === 'production' ? '' : '');
 
 export const authDataSourceOptions: DataSourceOptions = {
   type: 'postgres',

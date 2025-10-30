@@ -12,8 +12,8 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-  "@jungle/types": ["packages/types/dist"],
-  "@jungle/types/*": ["packages/types/dist/*"],
+      "@jungle/types": ["packages/types/dist"],
+      "@jungle/types/*": ["packages/types/dist/*"],
       "@jungle/utils/*": ["packages/utils/src/*"],
       "@ui-kit/*": ["packages/ui-kit/src/*"]
     }

@@ -52,9 +52,9 @@ services:
     ports:
       - '3000:3000'
     volumes:
-      - .:/repo
       - /repo/node_modules
       - /repo/apps/api-gateway/node_modules
+    mem_limit: 4g
 
   auth-service:
     build:
@@ -70,9 +70,9 @@ services:
     ports:
       - '3001:3001'
     volumes:
-      - .:/repo
       - /repo/node_modules
       - /repo/apps/auth-service/node_modules
+    mem_limit: 4g
 
   tasks-service:
     build:
@@ -88,9 +88,9 @@ services:
     ports:
       - '3002:3002'
     volumes:
-      - .:/repo
       - /repo/node_modules
       - /repo/apps/tasks-service/node_modules
+    mem_limit: 4g
 
   notifications-service:
     build:
@@ -106,7 +106,6 @@ services:
     ports:
       - '3003:3003'
     volumes:
-      - .:/repo
       - /repo/node_modules
       - /repo/apps/notifications-service/node_modules
 

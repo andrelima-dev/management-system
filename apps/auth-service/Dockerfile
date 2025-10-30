@@ -3,12 +3,14 @@
 FROM node:22-alpine AS development
 ENV PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN corepack enable pnpm
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/auth-service ./apps/auth-service
 RUN pnpm install --recursive --filter=@jungle/auth-service
+RUN pnpm --filter @jungle/types build || true
 EXPOSE 3001
 WORKDIR /repo/apps/auth-service
 CMD ["pnpm", "dev"]
@@ -33,4 +35,6 @@ WORKDIR /app
 COPY --from=base /pnpm /pnpm
 COPY --from=base /repo/apps/auth-service/dist ./dist
 COPY --from=base /repo/apps/auth-service/package.json ./package.json
+COPY --from=base /repo/apps/auth-service/node_modules ./node_modules
+COPY --from=base /repo/packages/types/dist ../packages/types/dist
 CMD ["node", "dist/main.js"]

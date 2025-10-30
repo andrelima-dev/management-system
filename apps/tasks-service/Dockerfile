@@ -3,12 +3,14 @@
 FROM node:22-alpine AS development
 ENV PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN corepack enable pnpm
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/tasks-service ./apps/tasks-service
 RUN pnpm install --recursive --filter=@jungle/tasks-service
+RUN pnpm --filter @jungle/types build || true
 EXPOSE 3002
 WORKDIR /repo/apps/tasks-service
 CMD ["pnpm", "dev"]
@@ -33,4 +35,6 @@ WORKDIR /app
 COPY --from=base /pnpm /pnpm
 COPY --from=base /repo/apps/tasks-service/dist ./dist
 COPY --from=base /repo/apps/tasks-service/package.json ./package.json
+COPY --from=base /repo/apps/tasks-service/node_modules ./node_modules
+COPY --from=base /repo/packages/types/dist ../packages/types/dist
 CMD ["node", "dist/main.js"]

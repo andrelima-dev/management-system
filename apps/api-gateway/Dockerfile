@@ -1,12 +1,14 @@
 FROM node:22-alpine AS development
 ENV PNPM_HOME=/pnpm
 ENV PATH="$PNPM_HOME:$PATH"
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN corepack enable pnpm
 WORKDIR /repo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY packages ./packages
 COPY apps/api-gateway ./apps/api-gateway
 RUN pnpm install --recursive --filter=@jungle/api-gateway
+RUN pnpm --filter @jungle/types build || true
 EXPOSE 3000
 WORKDIR /repo/apps/api-gateway
 CMD ["pnpm", "dev"]
@@ -31,4 +33,6 @@ WORKDIR /app
 COPY --from=base /pnpm /pnpm
 COPY --from=base /repo/apps/api-gateway/dist ./dist
 COPY --from=base /repo/apps/api-gateway/package.json ./package.json
+COPY --from=base /repo/apps/api-gateway/node_modules ./node_modules
+COPY --from=base /repo/packages/types/dist ../packages/types/dist
 CMD ["node", "dist/main.js"]
