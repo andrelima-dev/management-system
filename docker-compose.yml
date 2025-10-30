@@ -3,7 +3,7 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: tasks
+      POSTGRES_DB: jungle
       POSTGRES_USER: jungle
       POSTGRES_PASSWORD: jungle_pass
     ports:

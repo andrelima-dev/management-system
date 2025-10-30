@@ -6,6 +6,7 @@ import { CommentEntity } from '../comments/comment.entity';
 import { HistoryEntryEntity } from '../history/history-entry.entity';
 import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
+import { TasksMicroserviceController } from './tasks.microservice.controller';
 import { MessagingModule } from '../../messaging/messaging.module';
 
 @Module({
@@ -13,7 +14,7 @@ import { MessagingModule } from '../../messaging/messaging.module';
     TypeOrmModule.forFeature([TaskEntity, TaskAssigneeEntity, CommentEntity, HistoryEntryEntity]),
     MessagingModule
   ],
-  controllers: [TasksController],
+  controllers: [TasksController, TasksMicroserviceController],
   providers: [TasksService],
   exports: [TasksService]
 })

@@ -14,7 +14,8 @@ export const taskDataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   entities: [TaskEntity, CommentEntity, HistoryEntryEntity, TaskAssigneeEntity],
   migrations: [migrationsDir],
-  synchronize: false
+  // Em desenvolvimento, habilita sync para criar tabelas automaticamente
+  synchronize: process.env.NODE_ENV !== 'production'
 };
 
 export const typeOrmConfig = async (

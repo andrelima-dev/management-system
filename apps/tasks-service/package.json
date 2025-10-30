@@ -9,10 +9,10 @@
     "test": "jest",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typeorm": "typeorm",
-    "migration:run": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:run -d src/database/data-source.ts",
-    "migration:revert": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:revert -d src/database/data-source.ts",
-    "migration:generate": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:generate",
-    "migration:create": "ts-node -r tsconfig-paths/register ./node_modules/.bin/typeorm migration:create"
+    "migration:run": "ts-node -r tsconfig-paths/register --transpile-only --project tsconfig.json ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts",
+    "migration:revert": "ts-node -r tsconfig-paths/register --transpile-only --project tsconfig.json ./node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts",
+    "migration:generate": "ts-node -r tsconfig-paths/register --transpile-only --project tsconfig.json ./node_modules/typeorm/cli.js migration:generate -d src/database/data-source.ts",
+    "migration:create": "ts-node -r tsconfig-paths/register --transpile-only --project tsconfig.json ./node_modules/typeorm/cli.js migration:create -d src/database/data-source.ts"
   },
   "dependencies": {
     "@jungle/types": "workspace:*",

@@ -13,6 +13,9 @@ import { MicroservicesClientService } from './microservices-client.service';
           queue: 'jungle_auth_service',
           queueOptions: {
             durable: true,
+            arguments: {
+              'x-max-priority': 10,
+            },
           },
           prefetchCount: 10,
         },
@@ -25,6 +28,9 @@ import { MicroservicesClientService } from './microservices-client.service';
           queue: 'jungle_tasks_service',
           queueOptions: {
             durable: true,
+            arguments: {
+              'x-max-priority': 10,
+            },
           },
           prefetchCount: 10,
         },
@@ -37,6 +43,9 @@ import { MicroservicesClientService } from './microservices-client.service';
           queue: 'jungle_notifications_service',
           queueOptions: {
             durable: true,
+            arguments: {
+              'x-max-priority': 10,
+            },
           },
           prefetchCount: 10,
         },
