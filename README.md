@@ -359,9 +359,7 @@ MIT License - See LICENSE file for details
 ---
 
 <div align="center">
-
-**Built with ❤️ using NestJS, React, and PostgreSQL**
-
+  
 [⬆ Back to Top](#-jungle-task-system)
 
 </div>
