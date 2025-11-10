@@ -1,4 +1,4 @@
-# 🌴 Jungle Task System
+# System management platform
 
 A production-ready task management platform with microservices architecture, built with **NestJS**, **React**, and **PostgreSQL**.
 
